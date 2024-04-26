@@ -12,7 +12,7 @@ import definePlugin from "@utils/types";
 import { OptionType } from "@utils/types";
 import { RelationshipStore, UserUtils } from "@webpack/common";
 
-const baseURL = "http://localhost:3210/";
+const baseURL = "https://localho.st:3210/";
 
 const pluginSettings = definePluginSettings({
     token: {
