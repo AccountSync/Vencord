@@ -19,6 +19,12 @@ const pluginSettings = definePluginSettings({
         type: OptionType.STRING,
         description: `Get your token from ${baseURL}verify`,
         restartNeeded: true
+    },
+    url: {
+        type: OptionType.STRING,
+        description: `The URL of the backend. Default is the official server.`,
+        default: baseURL,
+        restartNeeded: true
     }
 });
 
@@ -51,7 +57,7 @@ function syncFriendList(friends) {
     const token: any = pluginSettings.store.token;
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${baseURL}sync`);
+    xhr.open("POST", `${pluginSettings.store.url}sync`);
     xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
     xhr.setRequestHeader("Authorization", token);
     const body = JSON.stringify({
