@@ -12,7 +12,7 @@ import definePlugin from "@utils/types";
 import { OptionType } from "@utils/types";
 import { RelationshipStore, UserUtils } from "@webpack/common";
 
-const baseURL = "https://localho.st:3210/";
+const baseURL = "https://accountsync.vercel.app/";
 
 const pluginSettings = definePluginSettings({
     token: {
