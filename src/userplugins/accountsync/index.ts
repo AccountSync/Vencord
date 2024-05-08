@@ -39,20 +39,14 @@ export default definePlugin({
     settings: pluginSettings,
     async start() {
         const friendIDs = RelationshipStore.getFriendIDs();
-        const friends: string[] = [];
-        friendIDs.forEach(async id => {
-            const user: any = await UserUtils.getUser(id).catch(() => void 0);
-            friends.push(user.tag);
-        });
-        syncFriendList(friends);
+        syncFriendList(friendIDs);
     },
     stop() {
     }
 });
 
-function syncFriendList(friends) {
+function syncFriendList(friends: string[]) {
     console.log('Updating Friends');
-    console.log(friends);
 
     const token: any = pluginSettings.store.token;
 
