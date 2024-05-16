@@ -7,6 +7,7 @@
 // Needed header for all plugins
 
 import { definePluginSettings } from "@api/Settings";
+import { DataStore } from "@api/index";
 import { Devs } from "@utils/constants";
 import definePlugin from "@utils/types";
 import { OptionType } from "@utils/types";
@@ -60,29 +61,27 @@ export default definePlugin({
     }
 });
 
-function syncFriendList(friends: string[]) {
+async function syncFriendList(friends: string[]) {
     console.log('Updating Friends');
 
-    const token: any = localStorage.getItem('accountsync-token');
+    const tokenList = await DataStore.get('accountsync-token');
+    const token = tokenList[UserStore.getCurrentUser().id];
 
     if (!token) return;
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${pluginSettings.store.url}sync`);
-    xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-    xhr.setRequestHeader("Authorization", token);
-    const body = JSON.stringify({
-        id: UserStore.getCurrentUser().id,
-        friends
-    });
-    xhr.onload = () => {
-        if (xhr.readyState == 4 && xhr.status == 201) {
-            console.log(JSON.parse(xhr.responseText));
-        } else {
-            console.log(`Error: ${xhr.status}`);
+    fetch(`${pluginSettings.store.url}sync`, {
+        method: "POST",
+        body: JSON.stringify({
+            friends
+        }),
+        headers: {
+            "Content-type": "application/json; charset=UTF-8",
+            "Authorization": token as string
         }
-    };
-    xhr.send(body);
+    })
+        .then(async (response) => {
+            console.log(await response.text());
+        });
 }
 
 function authorize() {
@@ -97,19 +96,25 @@ function authorize() {
             cancelCompletesFlow={false}
             callback={async (response: any) => {
                 const url = new URL(response.location);
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", `${pluginSettings.store.url}verify`);
-                xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-                xhr.onload = () => {
-                    if (xhr.readyState == 4 && xhr.status == 201) {
-                        if (!(xhr.responseText == 'error')) {
-                            localStorage.setItem('token', xhr.responseText);
-                        }
-                    } else {
-                        console.log(`Error: ${xhr.status}`);
+                fetch(`${pluginSettings.store.url}verify`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        code: url.searchParams.get('code')
+                    }),
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
                     }
-                };
-                xhr.send(url.searchParams.get('code'));
+                })
+                    .then(async (response) => {
+                        const token = await response.text();
+                        if (!(token == 'error')) {
+                            DataStore.update('accountsync-token', value => {
+                                value ??= {};
+                                value[UserStore.getCurrentUser().id] = token;
+                                return value;
+                            });
+                        }
+                    });
             }}
         />
     );
